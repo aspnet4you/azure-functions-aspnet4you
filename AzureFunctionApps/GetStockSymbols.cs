@@ -22,11 +22,10 @@ namespace AzureFunctionApps
             
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("stocksymbols");
-            //CloudBlockBlob blockBlob = container.GetBlockBlobReference("stocksymbols.txt");
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference("symbols2.txt");
+            CloudBlobContainer container = blobClient.GetContainerReference(GetEnvironmentVariable("StocksymbolsBlobContainer"));
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(GetEnvironmentVariable("StocksymbolsBlobName"));
 
-            log.Info($"BlockBlob name: {blockBlob.Name}");
+            log.Info($"Reading BlockBlob: {blockBlob.Name}");
 
             var jsonBlob = await blockBlob.DownloadTextAsync();
 
