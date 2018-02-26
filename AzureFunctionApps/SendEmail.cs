@@ -24,7 +24,8 @@ namespace AzureFunctionApps
             Mail message = new Mail
             {
                 Subject = msg,
-                From = new Email("Prodip.Kumar@outlook.com")
+                From = new Email("noreply@aspnet4you.com", "No Reply"),
+                ReplyTo= new Email("Prodip.Kumar@outlook.com", "Prodip Saha")
             };
 
             
