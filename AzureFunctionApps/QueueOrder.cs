@@ -10,6 +10,9 @@ using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage; 
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
+using System.Web.Http;
+using AzureFunctionApps.Security;
+using System.Security.Claims;
 
 namespace AzureFunctionApps
 {
@@ -22,8 +25,14 @@ namespace AzureFunctionApps
     {
         [FunctionName("QueueOrder")]
         public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, 
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] POCOOrder order, TraceWriter log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] POCOOrder order, TraceWriter log)
         {
+            ClaimsPrincipal principal;
+            if ((principal = new CustomValidator(log).ValidateToken(req.Headers.Authorization)) == null)
+            {
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
+            }
+
             string msg = $"Hello " + order.CustomerName + "! Your order for " + order.ProductName + " with quantity of " + order.OrderCount + " has been received. You will receive email at " + order.CustomerEmail + " as soon as order is shipped.";
             log.Info(msg);
 
