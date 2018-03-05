@@ -62,11 +62,45 @@ namespace AzureFunctionApps.Security
                     _logger.Error(ex.Message);
                     _logger.Error(ex.StackTrace);
                 }
-
-                throw new Exception("Token Validation Failed");
             }
 
             return claimsPrincipal;
+        }
+
+        /// <summary>
+        /// IsInRole can be combined with  ValidateToken but we are keeping them separate for the demo.
+        /// Also, in real world scenario, allowedRoles should be cached at the caller to max performance.
+        /// </summary>
+        /// <param name="claimsPrincipal"></param>
+        /// <param name="allowedRoles"></param>
+        /// <returns></returns>
+        public bool IsInRole(ClaimsPrincipal claimsPrincipal, string[] allowedRoles)
+        {
+            bool amIInRole = false;
+
+            // Make a copy of the claims before entring into the loop- to gaurantee concurrency.
+            Claim[] claimsInClaimsPrincipal = claimsPrincipal.Claims.ToArray(); 
+
+            foreach (Claim claim in claimsInClaimsPrincipal)
+            {
+                foreach(string role in allowedRoles)
+                {
+                    if(role == claim.Value)
+                    {
+                        amIInRole = true;
+                        _logger.Info($"Claim matched: Claim Type:{claim.Type}, Value: {claim.Value}, Issuer: {claim.Issuer}");
+                        break;
+                    }
+                }
+
+                if(amIInRole == true)
+                {
+                    // Already in role, no need to loop!
+                    break;
+                }
+            }
+
+            return amIInRole;
         }
 
         private static IEnumerable<SecurityKey> CustomSigningResolver(string token, SecurityToken securityToken, string kid, TokenValidationParameters validationParameters)

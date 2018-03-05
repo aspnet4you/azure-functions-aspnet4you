@@ -25,12 +25,26 @@ namespace AzureFunctionApps
     {
         [FunctionName("QueueOrder")]
         public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, 
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] POCOOrder order, TraceWriter log)
+            [HttpTrigger(AuthorizationLevel.User, "post", Route = null)] POCOOrder order, TraceWriter log)
         {
-            ClaimsPrincipal principal;
-            if ((principal = new CustomValidator(log).ValidateToken(req.Headers.Authorization)) == null)
+            ClaimsPrincipal claimsPrincipal;
+            CustomValidator customValidator = new CustomValidator(log);
+            if ((claimsPrincipal = customValidator.ValidateToken(req.Headers.Authorization)) == null)
             {
-                return req.CreateResponse(HttpStatusCode.Unauthorized);
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized)
+                {
+                    Content = new StringContent("Invalid Token!", Encoding.UTF8, "application/json")
+                };
+            }
+
+            string[] allowedRoles = GetEnvironmentVariable("AllowedRoles").Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);         
+
+            if(customValidator.IsInRole(claimsPrincipal, allowedRoles) == false)
+            {
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized)
+                {
+                    Content = new StringContent("Invalid Roles!", Encoding.UTF8, "application/json")
+                };
             }
 
             string msg = $"Hello " + order.CustomerName + "! Your order for " + order.ProductName + " with quantity of " + order.OrderCount + " has been received. You will receive email at " + order.CustomerEmail + " as soon as order is shipped.";
@@ -80,7 +94,6 @@ namespace AzureFunctionApps
     {
         public string CustomerName { get; set; }
         public string CustomerEmail { get; set; }
-        public int ProductId { get; set; }
         public string ProductName { get; set; }
         public int OrderCount { get; set; }
     }
