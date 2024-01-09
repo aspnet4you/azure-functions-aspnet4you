@@ -9,7 +9,7 @@
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="1.0.0" />    
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SendGrid" Version="2.1.0" />    
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.8" />    
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.1.5" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.7.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
